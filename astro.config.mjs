@@ -2,6 +2,7 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
 import { unified } from '@astrojs/markdown-remark';
+import { mathRemarkPlugins, rehypeBlogMath } from './src/lib/markdown-math.mjs';
 
 function prefixImages() {
   return (tree) => {
@@ -23,6 +24,9 @@ export default defineConfig({
   trailingSlash: 'always',
   output: 'static',
   integrations: [mdx(), sitemap()],
-  markdown: { processor: unified({ rehypePlugins: [prefixImages] }) },
+  markdown: {
+    syntaxHighlight: { type: 'shiki', excludeLangs: ['math'] },
+    processor: unified({ remarkPlugins: mathRemarkPlugins, rehypePlugins: [prefixImages, rehypeBlogMath] }),
+  },
   server: { host: '127.0.0.1', port: 4321 },
 });

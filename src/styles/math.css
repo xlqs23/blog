@@ -1,0 +1,30 @@
+.math-block {
+  max-width: 100%;
+  margin: 1rem 0;
+  padding: .25rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overflow-wrap: normal;
+}
+
+.math-block .katex-display {
+  width: max-content;
+  min-width: 100%;
+  margin: .25em 0;
+}
+
+.math-inline-wrap .katex { overflow-wrap: normal; }
+
+.math-invalid .math-error-label {
+  display: inline-block;
+  margin-inline-end: .45em;
+  color: #a23325;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .math-invalid .math-error-label { color: #ffb1a7; }
+
+.math-invalid .math-error-source {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
