@@ -1,0 +1,15 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import PostCard from '../../components/PostCard.astro';
+import { visiblePosts, localUrl } from '../../lib/posts';
+export async function getStaticPaths() {
+  const posts = await visiblePosts();
+  return [...new Set(posts.flatMap((post) => post.data.tags))].map((tag) => ({ params: { tag }, props: { tag } }));
+}
+const { tag } = Astro.props;
+const posts = (await visiblePosts()).filter((post) => post.data.tags.includes(tag));
+---
+<!doctype html>
+<html lang="zh-CN"><head><BaseHead title={`标签：${tag}`} description={`浏览「${tag}」相关文章。`} /></head><body><Header /><main id="main" class="container collection-page"><a class="back-link" href={localUrl('tags/')}>全部标签</a><p class="eyebrow">TOPIC</p><h1>{tag}</h1><p class="muted">共 {posts.length} 篇文章</p><div class="post-list">{posts.map((post) => <PostCard post={post} />)}</div></main><Footer /></body></html>

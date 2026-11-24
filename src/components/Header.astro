@@ -1,0 +1,10 @@
+---
+import { SITE_TITLE, HOME_URL } from '../consts';
+import { localUrl } from '../lib/posts';
+const path = Astro.url.pathname;
+---
+<a class="skip-link" href="#main">跳到正文</a>
+<header class="site-header"><div class="header-inner">
+  <a class="brand" href={localUrl()} aria-label={`${SITE_TITLE}首页`}><span class="brand-mark" aria-hidden="true">N.</span><span>{SITE_TITLE}</span></a>
+  <nav aria-label="主导航"><a href={localUrl()} aria-current={path === localUrl() ? 'page' : undefined}>文章</a><a href={localUrl('tags/')} aria-current={path.includes('/tags/') ? 'page' : undefined}>标签</a><a href={HOME_URL}>个人主页</a></nav>
+</div></header>
