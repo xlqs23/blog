@@ -1,16 +1,12 @@
 ---
 import SitePage from '../layouts/SitePage.astro';
-import { HOME_URL, SITE } from '../consts';
+import { HOME_URL } from '../consts';
 ---
-<SitePage title="学术" description="教育经历和学术成果入口。">
+<SitePage title="学术" description="个人主页的学术资料入口。">
   <main id="main" class="container collection-page info-page">
     <h1>学术</h1>
     <div class="topic-list academic-links">
-      <a href={new URL('#selected-publications', HOME_URL)}><span>研究成果</span><span>个人主页</span></a>
-      <a href={new URL('#education', HOME_URL)}><span>教育经历</span><span>个人主页</span></a>
+      <a href={HOME_URL}><span>学术资料</span><span>个人主页</span></a>
     </div>
-    {!!SITE.education?.length && <ul class="education-list">
-      {SITE.education.map(({ school, details, period }) => <li><strong>{school}</strong>{details && <span>{details}</span>}{period && <small>{period}</small>}</li>)}
-    </ul>}
   </main>
 </SitePage>

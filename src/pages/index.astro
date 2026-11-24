@@ -43,15 +43,6 @@ const latestPost = posts[0];
         </div>
       </section>
 
-      <section class="home-row" aria-labelledby="education-title">
-        <h2 id="education-title">教育经历</h2>
-        <div class="home-row-content">
-          {SITE.education?.length ? <ul class="education-list">
-            {SITE.education.map(({ school, details, period }) => <li><strong>{school}</strong>{details && <span>{details}</span>}{period && <small>{period}</small>}</li>)}
-          </ul> : <p class="muted">暂无公开的教育经历。</p>}
-        </div>
-      </section>
-
       <section class="home-row" aria-labelledby="stats-title">
         <h2 id="stats-title">博客统计</h2>
         <div class="home-row-content stats-content">
