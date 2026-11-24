@@ -1,0 +1,38 @@
+---
+interface Props { posts: Array<{ data: { pubDate: Date } }>; today: Date }
+const { posts, today } = Astro.props;
+const dayMs = 86400000;
+const dateKey = (date: Date) => date.toISOString().slice(0, 10);
+const counts = new Map<string, number>();
+for (const { data } of posts) {
+  const key = dateKey(data.pubDate);
+  counts.set(key, (counts.get(key) ?? 0) + 1);
+}
+
+const todayKey = dateKey(today);
+const latest = new Date(`${todayKey}T00:00:00Z`);
+const start = latest.valueOf() - (52 * 7 + latest.getUTCDay()) * dayMs;
+const days = Array.from({ length: 53 * 7 }, (_, index) => {
+  const date = new Date(start + index * dayMs);
+  const key = dateKey(date);
+  return { date, key, count: key <= todayKey ? (counts.get(key) ?? 0) : 0, future: key > todayKey };
+});
+const total = days.reduce((sum, { count }) => sum + count, 0);
+const months = days.flatMap(({ date }, index) => date.getUTCDate() === 1
+  ? [{ column: Math.floor(index / 7) + 1, label: `${date.getUTCMonth() + 1}月` }]
+  : []);
+---
+<section class="activity-card" aria-label="过去 53 周的写作活动">
+  <div class="activity-heading"><strong>写作活动</strong><span>近期发布 {total} 篇文章</span></div>
+  <div class="activity-scroll" tabindex="0" aria-label="写作日历，可左右滚动">
+    <div class="activity-inner">
+      <div class="activity-months" aria-hidden="true">
+        {months.map(({ column, label }) => <span style={`grid-column:${column} / span ${Math.min(3, 54 - column)}`}>{label}</span>)}
+      </div>
+      <div class="activity-grid" role="img" aria-label={`过去 53 周发布 ${total} 篇文章，色块越深表示当天发布越多`}>
+        {days.map(({ key, count, future }) => <span data-level={Math.min(count, 4)} data-future={future || undefined} title={future ? undefined : `${key} · ${count} 篇`} />)}
+      </div>
+    </div>
+  </div>
+  <div class="activity-legend" aria-hidden="true"><span>少</span>{[0, 1, 2, 3, 4].map((level) => <i data-level={level} />)}<span>多</span></div>
+</section>

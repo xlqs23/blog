@@ -1,29 +1,76 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import PostCard from '../components/PostCard.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
-import { localUrl, visiblePosts } from '../lib/posts';
-const posts = await visiblePosts();
+import SitePage from '../layouts/SitePage.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import WritingActivity from '../components/WritingActivity.astro';
+import { HOME_URL, SITE, SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { localUrl, mediaUrl, postUrl, visiblePosts } from '../lib/posts';
+
+const posts = (await visiblePosts()).filter(({ data }) => !data.draft);
+const latest = posts.reduce<Date | undefined>((current, post) => {
+  const date = post.data.updatedDate ?? post.data.pubDate;
+  return !current || date > current ? date : current;
+}, undefined);
+const today = new Date();
+const since = SITE.since ? new Date(SITE.since).valueOf() : NaN;
+const elapsed = Number.isFinite(since) ? Math.max(1, Math.floor((today.valueOf() - since) / 86400000) + 1) : null;
+const wordCount = posts.reduce((total, post) => {
+  const prose = (post.body ?? '').replace(/^```[\s\S]*?^```/gm, '').replace(/https?:\/\/[^\s)]+/g, '');
+  return total + (prose.match(/\p{Script=Han}|(?:(?!\p{Script=Han})[\p{Letter}\p{Number}])+/gu)?.length ?? 0);
+}, 0);
+const number = new Intl.NumberFormat('zh-CN');
+const latestPost = posts[0];
 ---
-<!doctype html>
-<html lang="zh-CN"><head><BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} /></head><body><Header />
-  <main id="main" class="container">
-    <section class="intro"><p class="eyebrow">NOTES & IDEAS</p><h1>把思考，<br />慢慢写下来。</h1><p class="intro-description">{SITE_DESCRIPTION}</p><a class="text-link" href={localUrl('rss.xml')}>通过 RSS 订阅更新</a><div class="intro-decoration" aria-hidden="true"><span></span><span></span><span></span><span></span></div></section>
-    <section aria-labelledby="posts-title">
-      <div class="section-top"><div><p class="eyebrow">THE JOURNAL</p><h2 id="posts-title">全部文章 <span>{posts.length}</span></h2></div><label class="search-box"><span class="sr-only">搜索文章标题、摘要或标签</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="search" type="search" placeholder="搜索文章…" autocomplete="off" /></label></div>
-      <div class="post-list">{posts.map((post) => <PostCard post={post} />)}</div><p id="empty-state" class="empty-state" hidden={posts.length > 0} aria-live="polite">暂时没有文章。</p>
+<SitePage title={SITE_TITLE} description={SITE_DESCRIPTION}>
+  <main id="main" class="container blog-home">
+    <section class="blog-profile" aria-label="博客简介">
+      {SITE.avatar && <img class="blog-avatar" src={mediaUrl(SITE.avatar)} alt="" width="128" height="128" />}
+      <div class="blog-profile-details">
+        <h1>{SITE.author || SITE_TITLE}</h1>
+        <div class="profile-links">
+          {SITE.location && <span class="profile-chip">{SITE.location}</span>}
+          <a class="profile-chip" href={HOME_URL}>个人主页</a>
+          <a class="profile-chip" href={localUrl('rss.xml')}>RSS 订阅</a>
+        </div>
+      </div>
     </section>
-  </main><Footer />
-  <script>
-    const search = document.querySelector<HTMLInputElement>('#search');
-    const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-post]'));
-    const empty = document.querySelector<HTMLElement>('#empty-state');
-    search?.addEventListener('input', () => {
-      const query = search.value.trim().toLocaleLowerCase();
-      for (const card of cards) card.hidden = !card.dataset.search?.includes(query);
-      if (empty) { empty.hidden = cards.some((card) => !card.hidden); empty.textContent = query ? '没有找到匹配的文章，试试其他关键词。' : '暂时没有文章。'; }
-    });
-  </script>
-</body></html>
+
+    <div class="home-sections">
+      <section class="home-row" aria-labelledby="about-title">
+        <h2 id="about-title">关于</h2>
+        <div class="home-row-content">
+          <p>{SITE.bio || SITE_DESCRIPTION}</p>
+          <a class="profile-chip" href={localUrl('about/')}>了解更多</a>
+        </div>
+      </section>
+
+      <section class="home-row" aria-labelledby="education-title">
+        <h2 id="education-title">教育经历</h2>
+        <div class="home-row-content">
+          {SITE.education?.length ? <ul class="education-list">
+            {SITE.education.map(({ school, details, period }) => <li><strong>{school}</strong>{details && <span>{details}</span>}{period && <small>{period}</small>}</li>)}
+          </ul> : <p class="muted">暂无公开的教育经历。</p>}
+        </div>
+      </section>
+
+      <section class="home-row" aria-labelledby="stats-title">
+        <h2 id="stats-title">博客统计</h2>
+        <div class="home-row-content stats-content">
+          <dl class="stat-grid">
+            <div class="stat-card"><dt>上线天数</dt><dd>{elapsed === null ? '—' : number.format(elapsed)}</dd></div>
+            <div class="stat-card stat-date"><dt>最近更新</dt><dd>{latest ? <FormattedDate date={latest} /> : '—'}</dd></div>
+            <div class="stat-card"><dt>文章字数</dt><dd>{number.format(wordCount)}</dd></div>
+          </dl>
+          <a class="post-count" href={localUrl('all/')}><span>文章总数</span><strong>{number.format(posts.length)}</strong></a>
+          <WritingActivity posts={posts} today={today} />
+        </div>
+      </section>
+
+      {latestPost && <section class="home-row latest-row" aria-labelledby="latest-title">
+        <h2 id="latest-title">最新文章</h2>
+        <div class="home-row-content">
+          <a class="latest-link" href={postUrl(latestPost.id)}><strong>{latestPost.data.title}</strong><FormattedDate date={latestPost.data.pubDate} /></a>
+        </div>
+      </section>}
+    </div>
+  </main>
+</SitePage>

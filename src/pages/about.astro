@@ -1,0 +1,14 @@
+---
+import SitePage from '../layouts/SitePage.astro';
+import { HOME_URL, SITE, SITE_DESCRIPTION } from '../consts';
+import { localUrl } from '../lib/posts';
+---
+<SitePage title="关于" description={SITE_DESCRIPTION}>
+  <main id="main" class="container collection-page info-page">
+    <h1>关于</h1>
+    <p>{SITE.bio || SITE_DESCRIPTION}</p>
+    <h2>站点</h2>
+    <p>这里整理博客文章和写作记录。学术信息与个人资料可在个人主页查看。</p>
+    <div class="profile-links"><a class="profile-chip" href={HOME_URL}>个人主页</a><a class="profile-chip" href={localUrl('all/')}>浏览文章</a><a class="profile-chip" href={localUrl('rss.xml')}>RSS 订阅</a></div>
+  </main>
+</SitePage>

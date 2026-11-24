@@ -1,14 +1,41 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
+import SitePage from './SitePage.astro';
 import FormattedDate from '../components/FormattedDate.astro';
+import { categoryFor } from '../lib/categories';
 import { localUrl, mediaUrl, tagUrl } from '../lib/posts';
-type Props = CollectionEntry<'blog'>['data'];
-const { title, description, pubDate, updatedDate, heroImage, tags, draft } = Astro.props;
+
+type Props = CollectionEntry<'blog'>['data'] & { headings: Array<{ depth: number; slug: string; text: string }> };
+const { title, description, pubDate, updatedDate, heroImage, tags, draft, headings } = Astro.props;
+const category = categoryFor(Astro.props);
+const toc = headings.filter(({ depth }) => depth >= 2 && depth <= 3);
 ---
-<!doctype html>
-<html lang="zh-CN"><head><BaseHead title={title} description={description} image={heroImage} noindex={draft} /></head><body><Header />
-  <main id="main" class="article-container"><a class="back-link" href={localUrl()}>全部文章</a><article><header class="article-header"><div class="post-meta"><FormattedDate date={pubDate} />{draft && <span class="draft-label">草稿 · 仅本地可见</span>}</div><h1>{title}</h1>{description && <p class="article-description">{description}</p>}<div class="tags">{tags.map((tag) => <a href={tagUrl(tag)}>{tag}</a>)}</div>{updatedDate && <p class="updated-date">更新于 <FormattedDate date={updatedDate} /></p>}</header>{heroImage && <img class="article-cover" src={mediaUrl(heroImage)} alt="文章封面" />}<div class="prose"><slot /></div></article><div class="article-end"><span>感谢阅读</span><a href={localUrl()}>浏览更多文章</a></div></main><Footer />
-</body></html>
+<SitePage title={title} description={description} image={heroImage} noindex={draft}>
+  <main id="main" class="container article-shell">
+    <div class:list={['article-grid', { 'with-toc': toc.length > 0 }]}>
+      {toc.length > 0 && <aside class="article-toc">
+        <nav aria-label="文章目录">
+          <h2>目录</h2>
+          <ul>{toc.map(({ depth, slug, text }) => <li class:list={[{ indent: depth === 3 }]}><a href={`#${slug}`}>{text}</a></li>)}</ul>
+        </nav>
+      </aside>}
+      <article class="article-container">
+        <a class="back-link" href={localUrl('all/')}>全部文章</a>
+        <header class="article-header">
+          <div class="post-meta">
+            <FormattedDate date={pubDate} />
+            <a href={localUrl(`${category.route}/`)}>{category.label}</a>
+            {draft && <span class="draft-label">草稿 · 仅本地可见</span>}
+          </div>
+          <h1>{title}</h1>
+          {description && <p class="article-description">{description}</p>}
+          {tags.length > 0 && <div class="tags">{tags.map((tag) => <a href={tagUrl(tag)}>{tag}</a>)}</div>}
+          {updatedDate && <p class="updated-date">更新于 <FormattedDate date={updatedDate} /></p>}
+        </header>
+        {heroImage && <img class="article-cover" src={mediaUrl(heroImage)} alt="文章封面" />}
+        <div class="prose"><slot /></div>
+        <div class="article-end"><a href={localUrl('all/')}>浏览更多文章</a></div>
+      </article>
+    </div>
+  </main>
+</SitePage>

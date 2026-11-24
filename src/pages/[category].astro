@@ -1,0 +1,27 @@
+---
+import SitePage from '../layouts/SitePage.astro';
+import PostCard from '../components/PostCard.astro';
+import { categoryFor, archives } from '../lib/categories';
+import { localUrl, visiblePosts } from '../lib/posts';
+
+export function getStaticPaths() {
+  return archives.map((archive) => ({ params: { category: archive.route }, props: { archive } }));
+}
+
+const { archive } = Astro.props;
+const posts = (await visiblePosts()).filter(({ data }) => archive.id === 'all' || categoryFor(data).id === archive.id);
+---
+<SitePage title={archive.label} description={archive.description}>
+  <main id="main" class="container collection-page">
+    <div class="collection-heading">
+      <div><h1>{archive.label}</h1><p class="muted">{archive.description}</p></div>
+      <a class="profile-chip" href={localUrl('search/')}>搜索文章</a>
+    </div>
+    <nav class="archive-tabs" aria-label="文章分类">
+      {archives.map(({ label, id, route }) => <a href={localUrl(`${route}/`)} aria-current={id === archive.id ? 'page' : undefined}>{label}</a>)}
+      <a href={localUrl('tags/')}>标签</a>
+    </nav>
+    <p class="post-summary">共 {posts.length} 篇</p>
+    {posts.length ? <div class="post-list">{posts.map((post) => <PostCard post={post} />)}</div> : <p class="empty-state">这个分类暂时没有文章。</p>}
+  </main>
+</SitePage>

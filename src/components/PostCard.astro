@@ -1,12 +1,19 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import FormattedDate from './FormattedDate.astro';
-import { mediaUrl, postUrl, tagUrl } from '../lib/posts';
+import { localUrl, mediaUrl, postUrl, tagUrl } from '../lib/posts';
+import { categoryFor } from '../lib/categories';
 interface Props { post: CollectionEntry<'blog'> }
 const { post } = Astro.props;
 const { title, description, pubDate, tags, draft, heroImage } = post.data;
+const category = categoryFor(post.data);
 ---
-<article class:list={['post-card', { 'with-cover': !!heroImage }]} data-post data-search={`${title} ${description} ${tags.join(' ')}`.toLocaleLowerCase()}>
+<article class:list={['post-card', { 'with-cover': !!heroImage }]} data-post={post.id} data-search={`${title} ${description} ${tags.join(' ')} ${category.label}`.toLocaleLowerCase()}>
   {heroImage && <a class="card-cover" href={postUrl(post.id)} tabindex="-1" aria-hidden="true"><img src={mediaUrl(heroImage)} alt="" loading="lazy" /></a>}
-  <div class="post-card-body"><div class="post-meta"><FormattedDate date={pubDate} />{draft && <span class="draft-label">草稿 · 仅本地可见</span>}</div><h2><a href={postUrl(post.id)}>{title}</a></h2>{description && <p>{description}</p>}<div class="tags">{tags.map((tag) => <a href={tagUrl(tag)}>{tag}</a>)}</div></div>
+  <div class="post-card-body">
+    <div class="post-meta"><FormattedDate date={pubDate} /><a href={localUrl(`${category.route}/`)}>{category.label}</a>{draft && <span class="draft-label">草稿 · 仅本地可见</span>}</div>
+    <h2><a href={postUrl(post.id)}>{title}</a></h2>
+    {description && <p>{description}</p>}
+    {tags.length > 0 && <div class="tags">{tags.map((tag) => <a href={tagUrl(tag)}>{tag}</a>)}</div>}
+  </div>
 </article>

@@ -1,0 +1,14 @@
+---
+import SitePage from '../layouts/SitePage.astro';
+import { HOME_URL } from '../consts';
+import { localUrl } from '../lib/posts';
+---
+<SitePage title="链接" description="个人主页和博客订阅。">
+  <main id="main" class="container collection-page info-page">
+    <h1>链接</h1>
+    <div class="topic-list">
+      <a href={HOME_URL}><span>个人主页</span><span>学术与资料</span></a>
+      <a href={localUrl('rss.xml')}><span>RSS 订阅</span><span>获取文章更新</span></a>
+    </div>
+  </main>
+</SitePage>

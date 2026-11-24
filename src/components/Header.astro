@@ -1,10 +1,87 @@
 ---
 import { SITE_TITLE, HOME_URL } from '../consts';
 import { localUrl } from '../lib/posts';
+import { categories } from '../lib/categories';
+
 const path = Astro.url.pathname;
+const current = (route = '') => path === localUrl(route) ? 'page' : undefined;
+const archive = ['all', 'tags', 'posts', ...categories.map(({ route }) => route)];
+const archiveActive = archive.some((route) => path.startsWith(localUrl(`${route}/`)));
+const sections = [
+  ['学术', 'academic/'],
+  ['项目', 'projects/'],
+  ['关于', 'about/'],
+  ['链接', 'links/'],
+];
 ---
 <a class="skip-link" href="#main">跳到正文</a>
-<header class="site-header"><div class="header-inner">
-  <a class="brand" href={localUrl()} aria-label={`${SITE_TITLE}首页`}><span class="brand-mark" aria-hidden="true">N.</span><span>{SITE_TITLE}</span></a>
-  <nav aria-label="主导航"><a href={localUrl()} aria-current={path === localUrl() ? 'page' : undefined}>文章</a><a href={localUrl('tags/')} aria-current={path.includes('/tags/') ? 'page' : undefined}>标签</a><a href={HOME_URL}>个人主页</a></nav>
-</div></header>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href={localUrl()} aria-current={current()}>{SITE_TITLE}</a>
+    <div class="nav-controls">
+      <button type="button" class="icon-button mobile-nav-button" aria-expanded="false" aria-controls="site-nav" aria-label="打开导航" hidden>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+      </button>
+      <nav id="site-nav" aria-label="博客导航">
+        <details class="blog-menu" data-active={archiveActive || undefined}>
+          <summary>博客<span class="chevron" aria-hidden="true"></span></summary>
+          <div class="blog-menu-panel">
+            <a href={localUrl('all/')} aria-current={current('all/')}>全部文章</a>
+            {categories.map(({ label, route }) => <a href={localUrl(`${route}/`)} aria-current={current(`${route}/`)}>{label}</a>)}
+            <a href={localUrl('tags/')} aria-current={current('tags/')}>标签</a>
+          </div>
+        </details>
+        {sections.map(([label, route]) => <a href={localUrl(route)} aria-current={current(route)}>{label}</a>)}
+        <a href={HOME_URL}>个人主页</a>
+      </nav>
+      <a href={localUrl('search/')} aria-current={current('search/')} class="icon-button" aria-label="搜索" title="搜索">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5" /></svg>
+      </a>
+      <button type="button" class="icon-button theme-button" aria-label="切换主题" title="切换主题" hidden>
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m17.1-7.1-1.4 1.4M6.3 17.7l-1.4 1.4m14.2 0-1.4-1.4M6.3 6.3 4.9 4.9" /></svg>
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.9 13.4A9 9 0 0 1 10.6 3.1 9 9 0 1 0 20.9 13.4Z" /></svg>
+      </button>
+    </div>
+  </div>
+</header>
+<script>
+  const themeButton = document.querySelector<HTMLButtonElement>('.theme-button');
+  const mobileButton = document.querySelector<HTMLButtonElement>('.mobile-nav-button');
+  const menu = document.querySelector<HTMLDetailsElement>('.blog-menu');
+  const nav = document.querySelector<HTMLElement>('#site-nav');
+  const setThemeLabel = () => {
+    const label = document.documentElement.dataset.theme === 'dark' ? '切换到浅色主题' : '切换到深色主题';
+    themeButton?.setAttribute('aria-label', label);
+    themeButton?.setAttribute('title', label);
+  };
+  if (themeButton) themeButton.hidden = false;
+  setThemeLabel();
+  themeButton?.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem('xlqs-blog-theme', next); } catch {}
+    setThemeLabel();
+  });
+  if (mobileButton) mobileButton.hidden = false;
+  nav?.classList.add('has-toggle');
+  const showNav = (open: boolean) => {
+    mobileButton?.setAttribute('aria-expanded', String(open));
+    mobileButton?.setAttribute('aria-label', open ? '关闭导航' : '打开导航');
+    nav?.classList.toggle('nav-open', open);
+    if (!open && menu) menu.open = false;
+  };
+  mobileButton?.addEventListener('click', () => showNav(mobileButton.getAttribute('aria-expanded') !== 'true'));
+  document.addEventListener('click', (event) => {
+    if (menu?.open && event.target instanceof Node && !menu.contains(event.target)) menu.open = false;
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    if (menu?.open) {
+      menu.open = false;
+      menu.querySelector('summary')?.focus();
+    } else if (mobileButton?.getAttribute('aria-expanded') === 'true') {
+      showNav(false);
+      mobileButton.focus();
+    }
+  });
+</script>
