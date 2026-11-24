@@ -19,6 +19,8 @@ const wordCount = posts.reduce((total, post) => {
 }, 0);
 const number = new Intl.NumberFormat('zh-CN');
 const latestPost = posts[0];
+const homeAbout = (SITE.homeAbout ?? (SITE.bio || SITE_DESCRIPTION)).trim();
+const aboutParagraphs = homeAbout.split(/\r?\n(?:[ \t]*\r?\n)+/);
 ---
 <SitePage title={SITE_TITLE} description={SITE_DESCRIPTION}>
   <main id="main" class="container blog-home">
@@ -35,13 +37,13 @@ const latestPost = posts[0];
     </section>
 
     <div class="home-sections">
-      <section class="home-row" aria-labelledby="about-title">
+      {homeAbout && <section class="home-row" aria-labelledby="about-title">
         <h2 id="about-title">关于</h2>
-        <div class="home-row-content">
-          <p>{SITE.bio || SITE_DESCRIPTION}</p>
+        <div class="home-row-content home-about">
+          {aboutParagraphs.map((paragraph) => <p>{paragraph}</p>)}
           <a class="profile-chip" href={localUrl('about/')}>了解更多</a>
         </div>
-      </section>
+      </section>}
 
       <section class="home-row" aria-labelledby="stats-title">
         <h2 id="stats-title">博客统计</h2>
@@ -65,3 +67,11 @@ const latestPost = posts[0];
     </div>
   </main>
 </SitePage>
+
+<style>
+  .home-about p {
+    margin: 0 0 .65rem;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+  }
+</style>

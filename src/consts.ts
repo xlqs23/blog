@@ -8,6 +8,7 @@ interface Education {
 export const SITE = site as typeof site & {
   avatar?: string;
   bio?: string;
+  homeAbout?: string;
   location?: string;
   education?: Education[];
   since?: string;
