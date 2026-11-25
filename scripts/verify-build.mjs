@@ -44,8 +44,13 @@ for (const file of walk(dist).filter((f) => f.endsWith('.html'))) {
     assert(fs.existsSync(target), `Broken generated local link in ${path.relative(dist, file)}: ${raw}`);
   }
 }
-assert(read('rss.xml').includes('https://xlqs23.github.io/blog/posts/welcome/'), 'RSS link must contain exactly one /blog prefix');
+assert(!fs.existsSync(path.join(dist, 'rss.xml')), 'Removed RSS route must not be generated');
+for (const file of walk(dist).filter((f) => /\.(html|xml|json|js)$/.test(f))) {
+  assert(!/application\/rss\+xml|rss\.xml|RSS 订阅/.test(fs.readFileSync(file, 'utf8')), `Removed RSS references must not remain in ${path.relative(dist, file)}`);
+}
+assert(read('index.html').includes('<title>XLQS’s Blog</title>'), 'Homepage must use the requested exact site title');
+for (const section of ['links', 'academic', 'projects']) assert(fs.existsSync(path.join(dist, section, 'index.html')), `Missing section page: ${section}`);
 assert(read('sitemap-0.xml').includes('https://xlqs23.github.io/blog/posts/welcome/'), 'Sitemap must use production path');
 assert(!read('index.html').includes('VERIFICATION_IMAGE'), 'Temporary verification content must be removed');
 assert(read('index.html').includes('写作活动'), 'Homepage must render its writing calendar');
-console.log('PASS: categories, search index, writing activity, draft exclusion, media paths, generated links, RSS and sitemap.');
+console.log('PASS: categories, search index, writing activity, draft exclusion, media paths, generated links, removed RSS, site title, section pages and sitemap.');

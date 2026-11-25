@@ -1,5 +1,4 @@
 ---
 import { SITE_AUTHOR, SITE_TITLE, HOME_URL } from '../consts';
-import { localUrl } from '../lib/posts';
 ---
-<footer class="site-footer"><span>© {new Date().getFullYear()} {SITE_AUTHOR || SITE_TITLE}</span><div><a href={HOME_URL}>个人主页</a><a href={localUrl('rss.xml')}>RSS 订阅</a><a href="https://astro.build/">Astro</a></div></footer>
+<footer class="site-footer"><span>© {new Date().getFullYear()} {SITE_AUTHOR || SITE_TITLE}</span><div><a href={HOME_URL}>个人主页</a><a href="https://astro.build/">Astro</a></div></footer>

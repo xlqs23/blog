@@ -1,11 +1,11 @@
 ---
 import SitePage from '../layouts/SitePage.astro';
-import { localUrl } from '../lib/posts';
+import SectionList from '../components/SectionList.astro';
+import { sections } from '../lib/sections';
 ---
 <SitePage title="项目" description="项目与实践记录。">
   <main id="main" class="container collection-page info-page">
     <h1>项目</h1>
-    <p class="muted">暂无公开项目。</p>
-    <a class="profile-chip" href={localUrl('technical/')}>浏览技术笔记</a>
+    <SectionList entries={sections.projects} emptyMessage="暂无公开项目。" />
   </main>
 </SitePage>

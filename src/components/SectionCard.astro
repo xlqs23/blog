@@ -1,0 +1,31 @@
+---
+import type { SectionEntry } from '../lib/sections';
+import { mediaUrl } from '../lib/posts';
+interface Props { entry: SectionEntry }
+const { entry } = Astro.props;
+const image = entry.image
+  ? (/^https?:\/\//i.test(entry.image) ? entry.image : mediaUrl(entry.image))
+  : '';
+---
+<article class:list={['section-card', { 'has-image': !!image }]}>
+  {image && <img class="section-card-image" src={image} alt="" loading="lazy" decoding="async" width="168" height="126" />}
+  <div class="section-card-content">
+    <h2>{entry.url ? <a href={entry.url}>{entry.title}</a> : entry.title}</h2>
+    {entry.description && <p>{entry.description}</p>}
+  </div>
+</article>
+
+<style>
+  .section-card { display: flex; align-items: center; gap: 1.3rem; padding: 1.2rem; border: 1px solid var(--line); border-radius: .7rem; background: var(--surface); }
+  .section-card-image { flex: none; width: 10.5rem; height: 7.875rem; object-fit: cover; border-radius: .5rem; }
+  .section-card-content { min-width: 0; overflow-wrap: anywhere; }
+  h2 { margin: 0; font-size: 1.2rem; }
+  h2 a { color: var(--ink); }
+  h2 a:hover { color: var(--accent); }
+  p { margin: .5rem 0 0; color: var(--muted); white-space: pre-line; }
+  @media (max-width: 540px) {
+    .section-card { align-items: flex-start; gap: .9rem; padding: 1rem; }
+    .section-card-image { width: 5rem; height: 5rem; }
+    h2 { font-size: 1.075rem; }
+  }
+</style>

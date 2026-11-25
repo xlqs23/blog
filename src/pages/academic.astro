@@ -1,12 +1,11 @@
 ---
 import SitePage from '../layouts/SitePage.astro';
-import { HOME_URL } from '../consts';
+import SectionList from '../components/SectionList.astro';
+import { sections } from '../lib/sections';
 ---
-<SitePage title="学术" description="个人主页的学术资料入口。">
+<SitePage title="学术" description="学术资料与研究记录。">
   <main id="main" class="container collection-page info-page">
     <h1>学术</h1>
-    <div class="topic-list academic-links">
-      <a href={HOME_URL}><span>学术资料</span><span>个人主页</span></a>
-    </div>
+    <SectionList entries={sections.academic} emptyMessage="暂无公开学术资料。" />
   </main>
 </SitePage>

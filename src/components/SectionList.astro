@@ -1,0 +1,10 @@
+---
+import SectionCard from './SectionCard.astro';
+import type { SectionEntry } from '../lib/sections';
+interface Props { entries: SectionEntry[]; emptyMessage: string }
+const { entries, emptyMessage } = Astro.props;
+---
+{entries.length > 0
+  ? <div class="section-list">{entries.map((entry) => <SectionCard entry={entry} />)}</div>
+  : <p class="empty-state">{emptyMessage}</p>}
+<style>.section-list { display: grid; gap: .85rem; margin-top: 1.5rem; }</style>

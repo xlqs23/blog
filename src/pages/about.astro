@@ -12,7 +12,7 @@ const title = typeof frontmatter.title === 'string' && frontmatter.title.trim()
   <main id="main" class="container collection-page info-page">
     <h1>{title}</h1>
     <div class="about-body"><Content /></div>
-    <div class="profile-links"><a class="profile-chip" href={HOME_URL}>个人主页</a><a class="profile-chip" href={localUrl('all/')}>浏览文章</a><a class="profile-chip" href={localUrl('rss.xml')}>RSS 订阅</a></div>
+    <div class="profile-links"><a class="profile-chip" href={HOME_URL}>个人主页</a><a class="profile-chip" href={localUrl('all/')}>浏览文章</a></div>
   </main>
 </SitePage>
 

@@ -1,0 +1,19 @@
+{
+  "links": [
+    {
+      "title": "个人主页",
+      "description": "学术与资料",
+      "url": "https://xlqs23.github.io/",
+      "image": ""
+    }
+  ],
+  "academic": [
+    {
+      "title": "学术资料",
+      "description": "个人主页",
+      "url": "https://xlqs23.github.io/",
+      "image": ""
+    }
+  ],
+  "projects": []
+}
