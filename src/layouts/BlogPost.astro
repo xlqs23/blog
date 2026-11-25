@@ -6,11 +6,11 @@ import { categoryFor } from '../lib/categories';
 import { localUrl, mediaUrl, tagUrl } from '../lib/posts';
 
 type Props = CollectionEntry<'blog'>['data'] & { headings: Array<{ depth: number; slug: string; text: string }> };
-const { title, description, pubDate, updatedDate, heroImage, tags, draft, headings } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, tags, draft, headings, encrypted } = Astro.props;
 const category = categoryFor(Astro.props);
-const toc = headings.filter(({ depth }) => depth >= 2 && depth <= 3);
+const toc = encrypted ? [] : headings.filter(({ depth }) => depth >= 2 && depth <= 3);
 ---
-<SitePage title={title} description={description} image={heroImage} noindex={draft}>
+<SitePage title={title} description={description} image={encrypted ? undefined : heroImage} noindex={draft}>
   <main id="main" class="container article-shell">
     <div class:list={['article-grid', { 'with-toc': toc.length > 0 }]}>
       {toc.length > 0 && <aside class="article-toc">
@@ -26,14 +26,15 @@ const toc = headings.filter(({ depth }) => depth >= 2 && depth <= 3);
             <FormattedDate date={pubDate} />
             <a href={localUrl(`${category.route}/`)}>{category.label}</a>
             {draft && <span class="draft-label">草稿 · 仅本地可见</span>}
+            {encrypted && <span class="encrypted-label">🔒 加密文章</span>}
           </div>
           <h1>{title}</h1>
           {description && <p class="article-description">{description}</p>}
           {tags.length > 0 && <div class="tags">{tags.map((tag) => <a href={tagUrl(tag)}>{tag}</a>)}</div>}
           {updatedDate && <p class="updated-date">更新于 <FormattedDate date={updatedDate} /></p>}
         </header>
-        {heroImage && <img class="article-cover" src={mediaUrl(heroImage)} alt="文章封面" />}
-        <div class="prose"><slot /></div>
+        {!encrypted && heroImage && <img class="article-cover" src={mediaUrl(heroImage)} alt="文章封面" />}
+        <div class:list={[{ prose: !encrypted }]}><slot /></div>
         <div class="article-end"><a href={localUrl('all/')}>浏览更多文章</a></div>
       </article>
     </div>

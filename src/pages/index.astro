@@ -14,6 +14,7 @@ const today = new Date();
 const since = SITE.since ? new Date(SITE.since).valueOf() : NaN;
 const elapsed = Number.isFinite(since) ? Math.max(1, Math.floor((today.valueOf() - since) / 86400000) + 1) : null;
 const wordCount = posts.reduce((total, post) => {
+  if (post.data.encrypted) return total;
   const prose = (post.body ?? '').replace(/^```[\s\S]*?^```/gm, '').replace(/https?:\/\/[^\s)]+/g, '');
   return total + (prose.match(/\p{Script=Han}|(?:(?!\p{Script=Han})[\p{Letter}\p{Number}])+/gu)?.length ?? 0);
 }, 0);
@@ -60,7 +61,7 @@ const aboutParagraphs = homeAbout.split(/\r?\n(?:[ \t]*\r?\n)+/);
       {latestPost && <section class="home-row latest-row" aria-labelledby="latest-title">
         <h2 id="latest-title">最新文章</h2>
         <div class="home-row-content">
-          <a class="latest-link" href={postUrl(latestPost.id)}><strong>{latestPost.data.title}</strong><FormattedDate date={latestPost.data.pubDate} /></a>
+          <a class="latest-link" href={postUrl(latestPost.id)}><strong>{latestPost.data.encrypted && <span class="encrypted-label">🔒 </span>}{latestPost.data.title}</strong><FormattedDate date={latestPost.data.pubDate} /></a>
         </div>
       </section>}
     </div>

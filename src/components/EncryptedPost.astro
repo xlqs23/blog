@@ -1,0 +1,107 @@
+---
+interface Props { postId: string; encryption: Record<string, unknown> }
+const { postId, encryption } = Astro.props;
+const serialized = JSON.stringify(encryption).replace(/</g, '\\u003c');
+---
+<section class="encrypted-post" data-post-id={postId} aria-label="加密文章">
+  <script type="application/json" data-encryption set:html={serialized} />
+  <div class="unlock-panel">
+    <div class="unlock-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14v3"/></svg></div>
+    <h2>这篇文章已加密</h2>
+    <p>输入作者提供的密码，即可在当前页面阅读。</p>
+    <form class="unlock-form">
+      <label for={`post-password-${postId}`}>文章密码</label>
+      <div class="unlock-input-row"><input id={`post-password-${postId}`} name="article-password" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required /><button type="submit">解锁文章</button></div>
+    </form>
+    <p class="unlock-status" role="status" aria-live="polite"></p>
+    <noscript><p>阅读加密文章需要开启 JavaScript。</p></noscript>
+  </div>
+  <div class="unlocked-panel" hidden>
+    <div class="lock-toolbar"><span>已解锁 · 仅当前页面有效</span><button type="button" data-lock>重新锁定</button></div>
+    <div class="decrypted-content prose"></div>
+  </div>
+</section>
+
+<script>
+  import { decryptPost } from '../lib/encrypted-post.mjs';
+  import { mountDecryptedContent } from '../lib/encrypted-reader.mjs';
+
+  for (const reader of document.querySelectorAll<HTMLElement>('.encrypted-post')) {
+    const form = reader.querySelector<HTMLFormElement>('.unlock-form')!;
+    const input = form.querySelector<HTMLInputElement>('input')!;
+    const submit = form.querySelector<HTMLButtonElement>('button')!;
+    const status = reader.querySelector<HTMLElement>('.unlock-status')!;
+    const locked = reader.querySelector<HTMLElement>('.unlock-panel')!;
+    const unlocked = reader.querySelector<HTMLElement>('.unlocked-panel')!;
+    const content = reader.querySelector<HTMLElement>('.decrypted-content')!;
+    const lockButton = reader.querySelector<HTMLButtonElement>('[data-lock]')!;
+    const encryption = JSON.parse(reader.querySelector('[data-encryption]')!.textContent!);
+    let dispose = () => {};
+    let generation = 0;
+
+    function lock(focus = true) {
+      generation++;
+      dispose();
+      dispose = () => {};
+      content.replaceChildren();
+      unlocked.hidden = true;
+      locked.hidden = false;
+      input.value = '';
+      status.textContent = '';
+      submit.disabled = false;
+      submit.textContent = '解锁文章';
+      if (focus) input.focus();
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!input.value || submit.disabled) return;
+      const attempt = ++generation;
+      let password = input.value;
+      input.value = '';
+      submit.disabled = true;
+      submit.textContent = '正在解锁…';
+      status.textContent = '正在验证密码，请稍候。';
+      try {
+        const payload = await decryptPost(encryption, password, reader.dataset.postId!);
+        password = '';
+        if (attempt !== generation) return;
+        dispose = mountDecryptedContent(content, payload);
+        locked.hidden = true;
+        unlocked.hidden = false;
+        status.textContent = '';
+        lockButton.focus();
+      } catch {
+        if (attempt !== generation) return;
+        dispose();
+        content.replaceChildren();
+        status.textContent = '无法解锁：请检查密码，或联系作者确认文章是否完整。';
+        input.focus();
+      } finally {
+        password = '';
+        if (attempt === generation) { submit.disabled = false; submit.textContent = '解锁文章'; }
+      }
+    });
+    lockButton.addEventListener('click', () => lock());
+    window.addEventListener('pagehide', () => lock(false));
+  }
+</script>
+
+<style>
+  .unlock-panel { padding: 2rem; border: 1px solid var(--line); border-radius: .7rem; background: var(--surface); }
+  .unlock-icon { width: 2.5rem; height: 2.5rem; padding: .45rem; border-radius: .6rem; color: var(--accent); background: var(--tint); }
+  .unlock-icon svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 1.7; }
+  .unlock-panel h2 { margin: .8rem 0 .5rem; padding: 0; border: 0; font-size: 1.35rem; }
+  .unlock-panel p { color: var(--muted); margin: .4rem 0 1rem; font-size: .925rem; }
+  .unlock-form label { display: block; margin-bottom: .4rem; font-size: .9rem; }
+  .unlock-input-row { display: flex; gap: .6rem; }
+  input { width: 100%; min-width: 0; padding: .65rem .8rem; border: 1px solid var(--line); border-radius: .4rem; background: var(--paper); color: var(--ink); }
+  button { flex: none; padding: .6rem .95rem; border: 1px solid var(--accent); border-radius: .4rem; background: var(--accent); color: var(--paper); cursor: pointer; font-size: .9rem; }
+  button:disabled { opacity: .6; cursor: wait; }
+  .unlock-panel .unlock-status { margin: .85rem 0 0; }
+  .unlock-status:empty { display: none; }
+  .lock-toolbar { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: 1.5rem; padding-bottom: .9rem; border-bottom: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+  .lock-toolbar button { background: var(--tint); color: var(--accent); border-color: var(--line); }
+  .decrypted-content :global(.encrypted-post-cover) { display: block; width: 100%; max-height: 28rem; object-fit: cover; border-radius: .65rem; margin: 0 0 1.5rem; }
+  @media (max-width: 480px) { .unlock-panel { padding: 1.2rem; } .unlock-input-row { flex-direction: column; } }
+</style>

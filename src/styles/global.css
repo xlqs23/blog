@@ -142,6 +142,7 @@ input, button { font: inherit; }
 .tags { display: flex; gap: .35rem; flex-wrap: wrap; }
 .tags a, .draft-label { padding: .08rem .52rem; border-radius: .35rem; font-size: .8rem; color: var(--accent); background: var(--tint); }
 .tags a:hover { background: var(--highlight); text-decoration: none; }
+.encrypted-label { color: var(--muted); font-size: .8rem; white-space: nowrap; }
 .empty-state { padding: 1.55rem; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: .65rem; }
 .topic-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin: 1.2rem 0; }
 .topic-list a { display: flex; justify-content: space-between; gap: .7rem; align-items: baseline; padding: .75rem .9rem; color: var(--ink); border: 1px solid var(--line); border-radius: .65rem; background: var(--surface); }

@@ -14,12 +14,16 @@ const previewSchema = {
   },
 };
 
-function mapImages(resolveImage) {
+function mapAssets({ resolveImage, resolveLink }) {
   return (tree) => {
     function visit(node) {
-      if (node.type === 'element' && node.tagName === 'img' && typeof node.properties.src === 'string') {
+      if (resolveImage && node.type === 'element' && node.tagName === 'img' && typeof node.properties.src === 'string') {
         const path = resolveImage(node.properties.src);
         if (typeof path === 'string') node.properties.src = path;
+      }
+      if (resolveLink && node.type === 'element' && node.tagName === 'a' && typeof node.properties.href === 'string') {
+        const path = resolveLink(node.properties.href);
+        if (typeof path === 'string') node.properties.href = path;
       }
       node.children?.forEach(visit);
     }
@@ -27,7 +31,7 @@ function mapImages(resolveImage) {
   };
 }
 
-export async function renderMarkdownPreview(source, { resolveImage } = {}) {
+export async function renderMarkdownPreview(source, { resolveImage, resolveLink } = {}) {
   if (typeof source !== 'string') throw new TypeError('Markdown source must be a string');
 
   const processor = unified()
@@ -36,7 +40,7 @@ export async function renderMarkdownPreview(source, { resolveImage } = {}) {
     .use(mathRemarkPlugins)
     .use(remarkRehype, { allowDangerousHtml: false });
 
-  if (resolveImage) processor.use(mapImages, resolveImage);
+  if (resolveImage || resolveLink) processor.use(mapAssets, { resolveImage, resolveLink });
 
   // KaTeX output is generated with trust disabled after cleaning the original Markdown tree.
   const result = await processor

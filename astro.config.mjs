@@ -3,6 +3,7 @@ import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
 import { unified } from '@astrojs/markdown-remark';
 import { mathRemarkPlugins, rehypeBlogMath } from './src/lib/markdown-math.mjs';
+import { encryptedContentGuard } from './src/lib/encrypted-content-guard.mjs';
 
 function prefixImages() {
   return (tree) => {
@@ -23,7 +24,7 @@ export default defineConfig({
   base: '/blog',
   trailingSlash: 'always',
   output: 'static',
-  integrations: [mdx(), sitemap()],
+  integrations: [encryptedContentGuard(), mdx(), sitemap()],
   markdown: {
     syntaxHighlight: { type: 'shiki', excludeLangs: ['math'] },
     processor: unified({ remarkPlugins: mathRemarkPlugins, rehypePlugins: [prefixImages, rehypeBlogMath] }),
