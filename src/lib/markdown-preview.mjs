@@ -5,6 +5,7 @@ import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import { unified } from 'unified';
 import { mathRemarkPlugins, rehypeBlogMath } from './markdown-math.mjs';
+import { rehypePdfDocuments } from './markdown-pdf.mjs';
 
 const previewSchema = {
   ...defaultSchema,
@@ -45,6 +46,7 @@ export async function renderMarkdownPreview(source, { resolveImage, resolveLink 
   // KaTeX output is generated with trust disabled after cleaning the original Markdown tree.
   const result = await processor
     .use(rehypeSanitize, previewSchema)
+    .use(rehypePdfDocuments)
     .use(rehypeBlogMath)
     .use(rehypeStringify)
     .process(source);

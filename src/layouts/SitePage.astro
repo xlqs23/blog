@@ -13,3 +13,7 @@ interface Props { title: string; description: string; image?: string; noindex?: 
     <Footer />
   </body>
 </html>
+<script>
+  import { enhancePdfDocuments } from '../lib/pdf-reader.mjs';
+  enhancePdfDocuments(document);
+</script>

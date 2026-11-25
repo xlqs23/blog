@@ -4,6 +4,7 @@ import { defineConfig } from 'astro/config';
 import { unified } from '@astrojs/markdown-remark';
 import { mathRemarkPlugins, rehypeBlogMath } from './src/lib/markdown-math.mjs';
 import { encryptedContentGuard } from './src/lib/encrypted-content-guard.mjs';
+import { rehypePdfDocuments } from './src/lib/markdown-pdf.mjs';
 
 function prefixImages() {
   return (tree) => {
@@ -27,7 +28,7 @@ export default defineConfig({
   integrations: [encryptedContentGuard(), mdx(), sitemap()],
   markdown: {
     syntaxHighlight: { type: 'shiki', excludeLangs: ['math'] },
-    processor: unified({ remarkPlugins: mathRemarkPlugins, rehypePlugins: [prefixImages, rehypeBlogMath] }),
+    processor: unified({ remarkPlugins: mathRemarkPlugins, rehypePlugins: [prefixImages, rehypeBlogMath, rehypePdfDocuments] }),
   },
   server: { host: '127.0.0.1', port: 4321 },
 });

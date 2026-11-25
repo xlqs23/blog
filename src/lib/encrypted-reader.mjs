@@ -1,4 +1,5 @@
 import { decodeBase64, validatePayload } from './encrypted-post.mjs';
+import { enhancePdfDocuments } from './pdf-reader.mjs';
 
 // The writer sanitizes Markdown before encryption. This additional reader-side
 // check blocks active HTML if a malformed payload ever bypasses that writer.
@@ -13,15 +14,19 @@ function safeResource(value, isLink) {
 export function mountDecryptedContent(target, payload) {
   validatePayload(payload);
   const urls = new Map();
+  const pdfUrls = new Set();
   const clear = () => {
     target.replaceChildren();
     for (const value of urls.values()) URL.revokeObjectURL(value);
     urls.clear();
+    pdfUrls.clear();
   };
   try {
     for (const asset of payload.assets) {
       const bytes = decodeBase64(asset.data);
-      urls.set(asset.url, URL.createObjectURL(new Blob([bytes], { type: asset.mime })));
+      const objectUrl = URL.createObjectURL(new Blob([bytes], { type: asset.mime }));
+      urls.set(asset.url, objectUrl);
+      if (asset.mime === 'application/pdf') pdfUrls.add(objectUrl);
       bytes.fill(0);
     }
     const template = document.createElement('template');
@@ -46,6 +51,7 @@ export function mountDecryptedContent(target, payload) {
       if (element.tagName === 'A' && element.getAttribute('target') === '_blank') element.setAttribute('rel', 'noopener noreferrer');
     }
     target.replaceChildren(template.content);
+    enhancePdfDocuments(target, { allowedBlobUrls: pdfUrls, protectedContent: true });
     return clear;
   } catch (error) {
     clear();
